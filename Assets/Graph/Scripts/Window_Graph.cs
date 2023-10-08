@@ -21,7 +21,7 @@ public class Window_Graph : MonoBehaviour
         lableTemplateX = graphContainer.Find("lableTemplateX").GetComponent<RectTransform>();
         lableTemplateY = graphContainer.Find("lableTemplateX").GetComponent<RectTransform>();
         gameobjectsList = new List<GameObject>();
-        List<int> valueList = new List<int>() { 5, 98, 56, 45, 30, 22, 17, 15, 13, 17, 25, 37, 40, 36, 33, 98, 56, 45, 30, 22, 17, 15, 13, 17, 25, 37, 40, 36, 33 };
+        List<int> valueList = new List<int>() { 5, 98, 56, 45, 30, 22, 17, 15, 13, 17, 25, 37, 40, 36, 33 };
         ShowGraph(valueList, -1, (int _i) => "Day " + (_i + 1), (float _f) => "$" + Mathf.RoundToInt(_f));
         //FunctionPeriodic.Create(() =>
         //{
@@ -99,11 +99,14 @@ public class Window_Graph : MonoBehaviour
         float xSize = graphWidth / (maxVisibleValueAmount + 1);
 
         int xIndex = 0;
-        GameObject lastDotGameObject = null;
+        //GameObject lastDotGameObject = null;
         for (int i = Mathf.Max(valueList.Count - maxVisibleValueAmount, 0); i < valueList.Count; i++)
         {
             float xPosition = xSize + xIndex * xSize;
             float yPosition = ((valueList[i] - yMinimum) / (yMaximum - yMinimum)) * graphHeight;
+            GameObject barGameObject = CreateBar(new Vector2(xPosition, yPosition), xSize * 0.9f);
+            gameobjectsList.Add(barGameObject);
+            /*
             GameObject dotGameObject = CreateDot(new Vector2(xPosition, yPosition));
             gameobjectsList.Add(dotGameObject);
             if (lastDotGameObject != null)
@@ -112,7 +115,7 @@ public class Window_Graph : MonoBehaviour
                 gameobjectsList.Add(connectionGameobject);
             }
             lastDotGameObject = dotGameObject;
-
+            */
             RectTransform lableX = Instantiate(lableTemplateX);
             lableX.SetParent(graphContainer);
             lableX.gameObject.SetActive(true);
@@ -162,5 +165,19 @@ public class Window_Graph : MonoBehaviour
         rectTransform.anchoredPosition = dotPositionA + dir * distance * .5f;
         rectTransform.localEulerAngles = new Vector3(0, 0, UtilsClass.GetAngleFromVectorFloat(dir));
         return gameObject;
+    }
+
+    private GameObject CreateBar(Vector2 graphPosition,float barWidth)
+    {
+        GameObject gameObject = new GameObject("bar", typeof(Image));
+        gameObject.transform.SetParent(graphContainer, false);
+        RectTransform rectTransform = gameObject.GetComponent<RectTransform>();
+        rectTransform.anchoredPosition = new Vector2(graphPosition.x, 0f);
+        rectTransform.sizeDelta = new Vector2(barWidth, graphPosition.y);
+        rectTransform.anchorMin = new Vector2(0, 0);
+        rectTransform.anchorMax = new Vector2(0, 0);
+        rectTransform.pivot = new Vector2(0.5f, 0f);
+        return gameObject;
+
     }
 }
