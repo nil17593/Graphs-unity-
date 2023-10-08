@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using CodeMonkey.Utils;
 using TMPro;
+using System;
 
 public class Window_Graph : MonoBehaviour {
 
@@ -16,7 +17,7 @@ public class Window_Graph : MonoBehaviour {
     private void Awake() {
 
         List<int> valueList = new List<int>() { 5, 98, 56, 45, 30, 22, 17, 15, 13, 17, 25, 37, 40, 36, 33 };
-        ShowGraph(valueList);
+        ShowGraph(valueList, (int _i) => "Day " + (_i + 1), (float _f) => "$" + Mathf.RoundToInt(_f));
     }
 
     private GameObject CreateCircle(Vector2 anchoredPosition) {
@@ -31,8 +32,18 @@ public class Window_Graph : MonoBehaviour {
         return gameObject;
     }
 
-    private void ShowGraph(List<int> valueList)
+    private void ShowGraph(List<int> valueList, Func<int,string>getAxisLableX=null, Func<float, string> getAxisLableY = null)
     {
+        if (getAxisLableX == null)
+        {
+            getAxisLableX = delegate (int _i) { return _i.ToString(); };
+        }
+        if (getAxisLableY == null)
+        {
+            getAxisLableY = delegate (float _f) { return Mathf.RoundToInt(_f).ToString(); };
+        }
+
+
         float graphHeight = graphContainer.sizeDelta.y;
         float yMaximum = 100f;
         float xSize = 50f;
@@ -54,7 +65,7 @@ public class Window_Graph : MonoBehaviour {
             lableX.SetParent(graphContainer);
             lableX.gameObject.SetActive(true);
             lableX.anchoredPosition = new Vector2(xPosition, -20f);
-            lableX.GetComponent<TextMeshProUGUI>().text = i.ToString();
+            lableX.GetComponent<TextMeshProUGUI>().text = getAxisLableX(i);
 
             RectTransform dashX = Instantiate(dashTemplateX);
 
@@ -72,7 +83,7 @@ public class Window_Graph : MonoBehaviour {
             lableY.gameObject.SetActive(true);
             float normalizedValue = i * 1f / separatorCount;// multiply by 1 to convert it into float value
             lableY.anchoredPosition = new Vector2(-20f, normalizedValue * graphHeight);// multiply by graphHeight to get the actual graph height if it is 1 then it will be at graph height
-            lableY.GetComponent<TextMeshProUGUI>().text = Mathf.RoundToInt(normalizedValue * yMaximum).ToString();// if this is 1 then it will be a graph max value
+            lableY.GetComponent<TextMeshProUGUI>().text = getAxisLableY(normalizedValue * yMaximum).ToString();// if this is 1 then it will be a graph max value
             
             RectTransform dashY = Instantiate(dashTemplateY);
 
