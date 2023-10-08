@@ -45,14 +45,31 @@ public class Window_Graph : MonoBehaviour {
 
 
         float graphHeight = graphContainer.sizeDelta.y;
-        float yMaximum = 100f;
+        float yMaximum = valueList[0];
+        float yMinimum = valueList[0];
+
+        //calculating the max value for y axis depending on the highest data
+        foreach (int value in valueList)
+        {
+            if (value > yMaximum)
+            {
+                yMaximum = value;
+            }
+            if (value < yMinimum)
+            {
+                yMinimum = value;
+            }
+        }
+        yMaximum = yMaximum + ((yMaximum - yMinimum) * 0.2f);
+        yMinimum = yMinimum - ((yMaximum - yMinimum) * 0.2f);
+
         float xSize = 50f;
 
         GameObject lastCircleGameObject = null;
         for (int i = 0; i < valueList.Count; i++)
         {
             float xPosition = xSize + i * xSize;
-            float yPosition = (valueList[i] / yMaximum) * graphHeight;
+            float yPosition = ((valueList[i] - yMinimum) / (yMaximum - yMinimum)) * graphHeight;
             GameObject circleGameObject = CreateCircle(new Vector2(xPosition, yPosition));
             if (lastCircleGameObject != null)
             {
