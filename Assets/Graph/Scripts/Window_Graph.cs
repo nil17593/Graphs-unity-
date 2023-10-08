@@ -8,7 +8,7 @@ using System;
 public class Window_Graph : MonoBehaviour
 {
 
-    [SerializeField] private Sprite circleSprite;
+    [SerializeField] private Sprite dotSprite;
     [SerializeField] private RectTransform graphContainer;
     private RectTransform lableTemplateX;
     private RectTransform lableTemplateY;
@@ -34,11 +34,11 @@ public class Window_Graph : MonoBehaviour
         //}, 0.5f);
     }
 
-    private GameObject CreateCircle(Vector2 anchoredPosition)
+    private GameObject CreateDot(Vector2 anchoredPosition)
     {
-        GameObject gameObject = new GameObject("circle", typeof(Image));
+        GameObject gameObject = new GameObject("dot", typeof(Image));
         gameObject.transform.SetParent(graphContainer, false);
-        gameObject.GetComponent<Image>().sprite = circleSprite;
+        gameObject.GetComponent<Image>().sprite = dotSprite;
         RectTransform rectTransform = gameObject.GetComponent<RectTransform>();
         rectTransform.anchoredPosition = anchoredPosition;
         rectTransform.sizeDelta = new Vector2(11, 11);
@@ -99,19 +99,19 @@ public class Window_Graph : MonoBehaviour
         float xSize = graphWidth / (maxVisibleValueAmount + 1);
 
         int xIndex = 0;
-        GameObject lastCircleGameObject = null;
+        GameObject lastDotGameObject = null;
         for (int i = Mathf.Max(valueList.Count - maxVisibleValueAmount, 0); i < valueList.Count; i++)
         {
             float xPosition = xSize + xIndex * xSize;
             float yPosition = ((valueList[i] - yMinimum) / (yMaximum - yMinimum)) * graphHeight;
-            GameObject circleGameObject = CreateCircle(new Vector2(xPosition, yPosition));
-            gameobjectsList.Add(circleGameObject);
-            if (lastCircleGameObject != null)
+            GameObject dotGameObject = CreateDot(new Vector2(xPosition, yPosition));
+            gameobjectsList.Add(dotGameObject);
+            if (lastDotGameObject != null)
             {
-                GameObject connectionGameobject = CreateDotConnection(lastCircleGameObject.GetComponent<RectTransform>().anchoredPosition, circleGameObject.GetComponent<RectTransform>().anchoredPosition);
+                GameObject connectionGameobject = CreateDotConnection(lastDotGameObject.GetComponent<RectTransform>().anchoredPosition, dotGameObject.GetComponent<RectTransform>().anchoredPosition);
                 gameobjectsList.Add(connectionGameobject);
             }
-            lastCircleGameObject = circleGameObject;
+            lastDotGameObject = dotGameObject;
 
             RectTransform lableX = Instantiate(lableTemplateX);
             lableX.SetParent(graphContainer);
