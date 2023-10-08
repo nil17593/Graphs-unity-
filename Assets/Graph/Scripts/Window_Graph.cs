@@ -16,33 +16,110 @@ public class Window_Graph : MonoBehaviour
     [SerializeField] private RectTransform dashTemplateY;
     private List<GameObject> gameobjectsList;
 
+    //cached values
+    private List<int> valueList;
+    private IGraphVisual graphVisual;
+    private int maxVisibleValueAmount;
+    private Func<int, string> getAxisLableX;
+    private Func<float, string> getAxisLableY;
+
     private void Awake()
     {
         lableTemplateX = graphContainer.Find("lableTemplateX").GetComponent<RectTransform>();
         lableTemplateY = graphContainer.Find("lableTemplateX").GetComponent<RectTransform>();
         gameobjectsList = new List<GameObject>();
+
         List<int> valueList = new List<int>() { 5, 98, 56, 45, 30, 22, 17, 15, 13, 17, 25, 37, 40, 36, 33 };
 
-        IGraphVisual barGraphVisual = new BarChartVisual(graphContainer, Color.green, .8f);
+        IGraphVisual barChartVisual = new BarChartVisual(graphContainer, Color.green, .8f);
         IGraphVisual lineGraphVisual = new LineGraphVisual(graphContainer, dotSprite, Color.green, new Color(1, 1, 1, 0.5f));
-        ShowGraph(valueList, lineGraphVisual, -1, (int _i) => "Day " + (_i + 1), (float _f) => "$" + Mathf.RoundToInt(_f));
-        bool useBarChart = true;
-        FunctionPeriodic.Create(() =>
+        ShowGraph(valueList, barChartVisual, -1, (int _i) => "Day " + (_i + 1), (float _f) => "$" + Mathf.RoundToInt(_f));
+
+        transform.Find("BarChartButton").GetComponent<Button_UI>().ClickFunc= () =>
         {
-            if (useBarChart)
-            {
-                ShowGraph(valueList, barGraphVisual, -1, (int _i) => "Day " + (_i + 1), (float _f) => "$" + Mathf.RoundToInt(_f));
-            }
-            else
-            {
-                ShowGraph(valueList, lineGraphVisual, -1, (int _i) => "Day " + (_i + 1), (float _f) => "$" + Mathf.RoundToInt(_f));
-            }
-            useBarChart = !useBarChart;
-        }, 0.5f);
+            SetGraphVisual(barChartVisual);
+        };
+        transform.Find("LineGraphButton").GetComponent<Button_UI>().ClickFunc = () =>
+        {
+            SetGraphVisual(lineGraphVisual);
+        };
+
+        transform.Find("DecreaseVisibleAmountButton").GetComponent<Button_UI>().ClickFunc = () =>
+        {
+            DecreaseVisibleAmount();
+        };
+
+        transform.Find("IncreaseVisibleAmountButton").GetComponent<Button_UI>().ClickFunc = () =>
+        {
+            IncreaseVisibleAmount();
+        };
+
+        transform.Find("DollerButton").GetComponent<Button_UI>().ClickFunc = () =>
+        {
+            SetGetAxisLableY((float _f) => "$" + Mathf.RoundToInt(_f));
+        };
+        transform.Find("EuroButton").GetComponent<Button_UI>().ClickFunc = () =>
+        {
+            SetGetAxisLableY((float _f) => "e" + Mathf.RoundToInt(_f/1.18f));
+        };
+        //bool useBarChart = true;
+        //FunctionPeriodic.Create(() =>
+        //{
+        //    if (useBarChart)
+        //    {
+        //        ShowGraph(valueList, barGraphVisual, -1, (int _i) => "Day " + (_i + 1), (float _f) => "$" + Mathf.RoundToInt(_f));
+        //    }
+        //    else
+        //    {
+        //        ShowGraph(valueList, lineGraphVisual, -1, (int _i) => "Day " + (_i + 1), (float _f) => "$" + Mathf.RoundToInt(_f));
+        //    }
+        //    useBarChart = !useBarChart;
+        //}, 0.5f);
+    }
+
+    private void SetGetAxisLableX(Func<int,string> getAxisLableX)
+    {
+        ShowGraph(this.valueList, this.graphVisual, this.maxVisibleValueAmount + 1, this.getAxisLableX, this.getAxisLableY);
+    }
+
+    private void SetGetAxisLableY(Func<float, string> getAxisLableY)
+    {
+        ShowGraph(this.valueList, this.graphVisual, this.maxVisibleValueAmount + 1, this.getAxisLableX, this.getAxisLableY);
+    }
+
+    private void IncreaseVisibleAmount()
+    {
+        ShowGraph(this.valueList, this.graphVisual, this.maxVisibleValueAmount + 1, this.getAxisLableX, this.getAxisLableY);
+    }
+    private void DecreaseVisibleAmount()
+    {
+        ShowGraph(this.valueList, this.graphVisual, this.maxVisibleValueAmount - 1, this.getAxisLableX, this.getAxisLableY);
+    }
+
+    private void SetGraphVisual(IGraphVisual graphVisual)
+    {
+        ShowGraph(this.valueList, graphVisual, this.maxVisibleValueAmount, this.getAxisLableX, this.getAxisLableY);
     }
 
     private void ShowGraph(List<int> valueList, IGraphVisual graphVisual, int maxVisibleValueAmount = -1, Func<int, string> getAxisLableX = null, Func<float, string> getAxisLableY = null)
     {
+        this.valueList = valueList;
+        this.graphVisual = graphVisual;
+        this.maxVisibleValueAmount = maxVisibleValueAmount;
+        this.getAxisLableX = getAxisLableX;
+        this.getAxisLableY = getAxisLableY;
+
+        if (maxVisibleValueAmount <= 0)
+        {
+            //show all if no amount is specified
+            maxVisibleValueAmount = valueList.Count;
+        }
+        if (maxVisibleValueAmount > valueList.Count)
+        {
+            //validate the amount to show the maximum
+            maxVisibleValueAmount = valueList.Count;
+        }
+
         if (getAxisLableX == null)
         {
             getAxisLableX = delegate (int _i) { return _i.ToString(); };
@@ -51,10 +128,7 @@ public class Window_Graph : MonoBehaviour
         {
             getAxisLableY = delegate (float _f) { return Mathf.RoundToInt(_f).ToString(); };
         }
-        if (maxVisibleValueAmount <= 0)
-        {
-            maxVisibleValueAmount = valueList.Count;
-        }
+       
         foreach (GameObject gameObject in gameobjectsList)
         {
             Destroy(gameObject);
