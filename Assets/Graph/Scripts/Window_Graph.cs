@@ -5,22 +5,37 @@ using CodeMonkey.Utils;
 using TMPro;
 using System;
 
-public class Window_Graph : MonoBehaviour {
+public class Window_Graph : MonoBehaviour
+{
 
     [SerializeField] private Sprite circleSprite;
     [SerializeField] private RectTransform graphContainer;
-    [SerializeField] private RectTransform lableTemplateX;
-    [SerializeField] private RectTransform lableTemplateY;
+    private RectTransform lableTemplateX;
+    private RectTransform lableTemplateY;
     [SerializeField] private RectTransform dashTemplateX;
     [SerializeField] private RectTransform dashTemplateY;
+    private List<GameObject> gameobjectsList;
 
-    private void Awake() {
-
+    private void Awake()
+    {
+        lableTemplateX = graphContainer.Find("lableTemplateX").GetComponent<RectTransform>();
+        lableTemplateY = graphContainer.Find("lableTemplateX").GetComponent<RectTransform>();
+        gameobjectsList = new List<GameObject>();
         List<int> valueList = new List<int>() { 5, 98, 56, 45, 30, 22, 17, 15, 13, 17, 25, 37, 40, 36, 33 };
         ShowGraph(valueList, (int _i) => "Day " + (_i + 1), (float _f) => "$" + Mathf.RoundToInt(_f));
+        FunctionPeriodic.Create(() =>
+        {
+            valueList.Clear();
+            for (int i = 0; i < 15; i++)
+            {
+                valueList.Add(UnityEngine.Random.Range(0, 500));
+            }
+            ShowGraph(valueList, (int _i) => "Day " + (_i + 1), (float _f) => "$" + Mathf.RoundToInt(_f));
+        }, 0.5f);
     }
 
-    private GameObject CreateCircle(Vector2 anchoredPosition) {
+    private GameObject CreateCircle(Vector2 anchoredPosition)
+    {
         GameObject gameObject = new GameObject("circle", typeof(Image));
         gameObject.transform.SetParent(graphContainer, false);
         gameObject.GetComponent<Image>().sprite = circleSprite;
@@ -32,7 +47,7 @@ public class Window_Graph : MonoBehaviour {
         return gameObject;
     }
 
-    private void ShowGraph(List<int> valueList, Func<int,string>getAxisLableX=null, Func<float, string> getAxisLableY = null)
+    private void ShowGraph(List<int> valueList, Func<int, string> getAxisLableX = null, Func<float, string> getAxisLableY = null)
     {
         if (getAxisLableX == null)
         {
@@ -43,6 +58,11 @@ public class Window_Graph : MonoBehaviour {
             getAxisLableY = delegate (float _f) { return Mathf.RoundToInt(_f).ToString(); };
         }
 
+        foreach(GameObject gameObject in gameobjectsList)
+        {
+            Destroy(gameObject);
+        }
+        gameobjectsList.Clear();
 
         float graphHeight = graphContainer.sizeDelta.y;
         float yMaximum = valueList[0];
@@ -71,24 +91,26 @@ public class Window_Graph : MonoBehaviour {
             float xPosition = xSize + i * xSize;
             float yPosition = ((valueList[i] - yMinimum) / (yMaximum - yMinimum)) * graphHeight;
             GameObject circleGameObject = CreateCircle(new Vector2(xPosition, yPosition));
+            gameobjectsList.Add(circleGameObject);
             if (lastCircleGameObject != null)
             {
-                CreateDotConnection(lastCircleGameObject.GetComponent<RectTransform>().anchoredPosition, circleGameObject.GetComponent<RectTransform>().anchoredPosition);
+                GameObject connectionGameobject= CreateDotConnection(lastCircleGameObject.GetComponent<RectTransform>().anchoredPosition, circleGameObject.GetComponent<RectTransform>().anchoredPosition);
+                gameobjectsList.Add(connectionGameobject);
             }
             lastCircleGameObject = circleGameObject;
 
             RectTransform lableX = Instantiate(lableTemplateX);
-
             lableX.SetParent(graphContainer);
             lableX.gameObject.SetActive(true);
             lableX.anchoredPosition = new Vector2(xPosition, -20f);
             lableX.GetComponent<TextMeshProUGUI>().text = getAxisLableX(i);
+            gameobjectsList.Add(lableX.gameObject);
 
             RectTransform dashX = Instantiate(dashTemplateX);
-
-            dashX.SetParent(graphContainer,false);
+            dashX.SetParent(graphContainer, false);
             dashX.gameObject.SetActive(true);
             dashX.anchoredPosition = new Vector2(xPosition, -20f);
+            gameobjectsList.Add(dashX.gameObject);
         }
 
         int separatorCount = 10;
@@ -96,25 +118,26 @@ public class Window_Graph : MonoBehaviour {
         for (int i = 0; i <= separatorCount; i++)
         {
             RectTransform lableY = Instantiate(lableTemplateY);
-            lableY.SetParent(graphContainer,false);
+            lableY.SetParent(graphContainer, false);
             lableY.gameObject.SetActive(true);
             float normalizedValue = i * 1f / separatorCount;// multiply by 1 to convert it into float value
             lableY.anchoredPosition = new Vector2(-20f, normalizedValue * graphHeight);// multiply by graphHeight to get the actual graph height if it is 1 then it will be at graph height
-            lableY.GetComponent<TextMeshProUGUI>().text = getAxisLableY(normalizedValue * yMaximum).ToString();// if this is 1 then it will be a graph max value
-            
-            RectTransform dashY = Instantiate(dashTemplateY);
+            lableY.GetComponent<TextMeshProUGUI>().text = getAxisLableY(yMinimum + (normalizedValue * (yMaximum - yMinimum)));// if this is 1 then it will be a graph max value
+            gameobjectsList.Add(lableY.gameObject);
 
+            RectTransform dashY = Instantiate(dashTemplateY);
             dashY.SetParent(graphContainer);
             dashY.gameObject.SetActive(true);
             dashY.anchoredPosition = new Vector2(-20f, normalizedValue * graphHeight);
-
+            gameobjectsList.Add(dashY.gameObject);
         }
     }
 
-    private void CreateDotConnection(Vector2 dotPositionA, Vector2 dotPositionB) {
+    private GameObject CreateDotConnection(Vector2 dotPositionA, Vector2 dotPositionB)
+    {
         GameObject gameObject = new GameObject("dotConnection", typeof(Image));
         gameObject.transform.SetParent(graphContainer, false);
-        gameObject.GetComponent<Image>().color = new Color(1,1,1, .5f);
+        gameObject.GetComponent<Image>().color = new Color(1, 1, 1, .5f);
         RectTransform rectTransform = gameObject.GetComponent<RectTransform>();
         Vector2 dir = (dotPositionB - dotPositionA).normalized;
         float distance = Vector2.Distance(dotPositionA, dotPositionB);
@@ -123,6 +146,6 @@ public class Window_Graph : MonoBehaviour {
         rectTransform.sizeDelta = new Vector2(distance, 3f);
         rectTransform.anchoredPosition = dotPositionA + dir * distance * .5f;
         rectTransform.localEulerAngles = new Vector3(0, 0, UtilsClass.GetAngleFromVectorFloat(dir));
+        return gameObject;
     }
-
 }
