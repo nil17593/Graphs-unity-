@@ -10,6 +10,8 @@ public class Window_Graph : MonoBehaviour {
     [SerializeField] private RectTransform graphContainer;
     [SerializeField] private RectTransform lableTemplateX;
     [SerializeField] private RectTransform lableTemplateY;
+    [SerializeField] private RectTransform dashTemplateX;
+    [SerializeField] private RectTransform dashTemplateY;
 
     private void Awake() {
 
@@ -53,6 +55,12 @@ public class Window_Graph : MonoBehaviour {
             lableX.gameObject.SetActive(true);
             lableX.anchoredPosition = new Vector2(xPosition, -20f);
             lableX.GetComponent<TextMeshProUGUI>().text = i.ToString();
+
+            RectTransform dashX = Instantiate(dashTemplateX);
+
+            dashX.SetParent(graphContainer,false);
+            dashX.gameObject.SetActive(true);
+            dashX.anchoredPosition = new Vector2(xPosition, -20f);
         }
 
         int separatorCount = 10;
@@ -60,11 +68,18 @@ public class Window_Graph : MonoBehaviour {
         for (int i = 0; i <= separatorCount; i++)
         {
             RectTransform lableY = Instantiate(lableTemplateY);
-            lableY.SetParent(graphContainer);
+            lableY.SetParent(graphContainer,false);
             lableY.gameObject.SetActive(true);
             float normalizedValue = i * 1f / separatorCount;// multiply by 1 to convert it into float value
             lableY.anchoredPosition = new Vector2(-20f, normalizedValue * graphHeight);// multiply by graphHeight to get the actual graph height if it is 1 then it will be at graph height
             lableY.GetComponent<TextMeshProUGUI>().text = Mathf.RoundToInt(normalizedValue * yMaximum).ToString();// if this is 1 then it will be a graph max value
+            
+            RectTransform dashY = Instantiate(dashTemplateY);
+
+            dashY.SetParent(graphContainer);
+            dashY.gameObject.SetActive(true);
+            dashY.anchoredPosition = new Vector2(-20f, normalizedValue * graphHeight);
+
         }
     }
 
