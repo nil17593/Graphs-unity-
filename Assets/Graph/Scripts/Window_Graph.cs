@@ -2,11 +2,14 @@
 using UnityEngine;
 using UnityEngine.UI;
 using CodeMonkey.Utils;
+using TMPro;
 
 public class Window_Graph : MonoBehaviour {
 
     [SerializeField] private Sprite circleSprite;
     [SerializeField] private RectTransform graphContainer;
+    [SerializeField] private RectTransform lableTemplateX;
+    [SerializeField] private RectTransform lableTemplateY;
 
     private void Awake() {
 
@@ -26,20 +29,42 @@ public class Window_Graph : MonoBehaviour {
         return gameObject;
     }
 
-    private void ShowGraph(List<int> valueList) {
+    private void ShowGraph(List<int> valueList)
+    {
         float graphHeight = graphContainer.sizeDelta.y;
         float yMaximum = 100f;
         float xSize = 50f;
 
         GameObject lastCircleGameObject = null;
-        for (int i = 0; i < valueList.Count; i++) {
+        for (int i = 0; i < valueList.Count; i++)
+        {
             float xPosition = xSize + i * xSize;
             float yPosition = (valueList[i] / yMaximum) * graphHeight;
             GameObject circleGameObject = CreateCircle(new Vector2(xPosition, yPosition));
-            if (lastCircleGameObject != null) {
+            if (lastCircleGameObject != null)
+            {
                 CreateDotConnection(lastCircleGameObject.GetComponent<RectTransform>().anchoredPosition, circleGameObject.GetComponent<RectTransform>().anchoredPosition);
             }
             lastCircleGameObject = circleGameObject;
+
+            RectTransform lableX = Instantiate(lableTemplateX);
+
+            lableX.SetParent(graphContainer);
+            lableX.gameObject.SetActive(true);
+            lableX.anchoredPosition = new Vector2(xPosition, -20f);
+            lableX.GetComponent<TextMeshProUGUI>().text = i.ToString();
+        }
+
+        int separatorCount = 10;
+
+        for (int i = 0; i <= separatorCount; i++)
+        {
+            RectTransform lableY = Instantiate(lableTemplateY);
+            lableY.SetParent(graphContainer);
+            lableY.gameObject.SetActive(true);
+            float normalizedValue = i * 1f / separatorCount;// multiply by 1 to convert it into float value
+            lableY.anchoredPosition = new Vector2(-20f, normalizedValue * graphHeight);// multiply by graphHeight to get the actual graph height if it is 1 then it will be at graph height
+            lableY.GetComponent<TextMeshProUGUI>().text = Mathf.RoundToInt(normalizedValue * yMaximum).ToString();// if this is 1 then it will be a graph max value
         }
     }
 
