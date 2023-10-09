@@ -17,6 +17,7 @@ public class WindowGraph : MonoBehaviour
     [SerializeField] private RectTransform dashTemplateY;
     [SerializeField] private GameObject toolTip;
     private List<GameObject> gameObjectList;
+    private List<IGraphVisualObject> graphVisualObjectList;
 
     [SerializeField] private Button BarChartButton;
     [SerializeField] private Button LineGraphButton;
@@ -37,6 +38,7 @@ public class WindowGraph : MonoBehaviour
     {
         Instance = this;
         gameObjectList = new List<GameObject>();
+        graphVisualObjectList = new List<IGraphVisualObject>();
 
         List<int> valueList = new List<int>() { 5, 98, 56, 45, 30, 22, 17, 15, 13, 17, 25, 37, 40, 36, 33 };
 
@@ -193,6 +195,13 @@ public class WindowGraph : MonoBehaviour
         }
         gameObjectList.Clear();
 
+        foreach(IGraphVisualObject graphVisualObject in graphVisualObjectList)
+        {
+            graphVisualObject.CleanUp();
+        }
+
+        graphVisualObjectList.Clear();
+
         // Grab the width and height from the container
         float graphWidth = graphContainer.sizeDelta.x;
         float graphHeight = graphContainer.sizeDelta.y;
@@ -236,7 +245,7 @@ public class WindowGraph : MonoBehaviour
 
             // Add data point visual
             string tooltipText = getAxisLabelY(valueList[i]);
-            gameObjectList.AddRange(graphVisual.AddGraphVisual(new Vector2(xPosition, yPosition), xSize, tooltipText));
+            graphVisualObjectList.Add(graphVisual.CreateGraphVisualObject(new Vector2(xPosition, yPosition), xSize, tooltipText));
 
             // Duplicate the x label template
             RectTransform labelX = Instantiate(labelTemplateX);
@@ -286,8 +295,15 @@ public class WindowGraph : MonoBehaviour
     private interface IGraphVisual
     {
 
-        List<GameObject> AddGraphVisual(Vector2 graphPosition, float graphPositionWidth, string tooltipText);
+        IGraphVisualObject CreateGraphVisualObject(Vector2 graphPosition, float graphPositionWidth, string tooltipText);
 
+    }
+
+    //represents single visual graph object in graph
+    private interface IGraphVisualObject
+    {
+        void SetGarphVisualObjectInfo(Vector2 graphPosition, float graphPositionWidth, string tooltipText);
+        void CleanUp();
     }
 
 
@@ -308,23 +324,17 @@ public class WindowGraph : MonoBehaviour
             this.barWidthMultiplier = barWidthMultiplier;
         }
 
-        public List<GameObject> AddGraphVisual(Vector2 graphPosition, float graphPositionWidth, string tooltipText)
+        public IGraphVisualObject CreateGraphVisualObject(Vector2 graphPosition, float graphPositionWidth, string tooltipText)
         {
             GameObject barGameObject = CreateBar(graphPosition, graphPositionWidth);
 
-            // Add Button_UI Component which captures UI Mouse Events
-            Button_UI barButtonUI = barGameObject.AddComponent<Button_UI>();
+            BarChartVisualObject barChartVisualObject = new BarChartVisualObject(barGameObject, barWidthMultiplier);
+            barChartVisualObject.SetGarphVisualObjectInfo(graphPosition, graphPositionWidth, tooltipText);
+           
 
-            // Show Tooltip on Mouse Over
-            barButtonUI.MouseOverOnceFunc += () => {
-                ShowTooltip_Static(tooltipText, graphPosition);
-            };
+           
 
-            // Hide Tooltip on Mouse Out
-            barButtonUI.MouseOutOnceFunc += () => {
-                HideTooltip_Static();
-            };
-            return new List<GameObject>() { barGameObject };
+            return barChartVisualObject;
         }
 
         private GameObject CreateBar(Vector2 graphPosition, float barWidth)
@@ -338,7 +348,44 @@ public class WindowGraph : MonoBehaviour
             rectTransform.anchorMin = new Vector2(0, 0);
             rectTransform.anchorMax = new Vector2(0, 0);
             rectTransform.pivot = new Vector2(.5f, 0f);
+            // Add Button_UI Component which captures UI Mouse Events
+            Button_UI barButtonUI = gameObject.AddComponent<Button_UI>();
             return gameObject;
+        }
+
+        public class BarChartVisualObject: IGraphVisualObject
+        {
+            private  GameObject barGameObject;
+            private float barWidthMultiplier;
+            public BarChartVisualObject(GameObject barGameObject, float barWidthMultiplier)
+            {
+                this.barGameObject = barGameObject;
+                this.barWidthMultiplier = barWidthMultiplier;
+            }
+
+            public void CleanUp()
+            {
+                Destroy(barGameObject);
+            }
+
+            public void SetGarphVisualObjectInfo(Vector2 graphPosition, float graphPositionWidth, string tooltipText)
+            {
+                RectTransform rectTransform = barGameObject.GetComponent<RectTransform>();
+                rectTransform.anchoredPosition = new Vector2(graphPosition.x, 0f);
+                rectTransform.sizeDelta = new Vector2(graphPositionWidth * barWidthMultiplier, graphPosition.y);
+
+                Button_UI barButtonUI = barGameObject.GetComponent<Button_UI>();
+                // Show Tooltip on Mouse Over
+                barButtonUI.MouseOverOnceFunc = () => {
+                    ShowTooltip_Static(tooltipText, graphPosition);
+                };
+
+                // Hide Tooltip on Mouse Out
+                barButtonUI.MouseOutOnceFunc = () => {
+                    HideTooltip_Static();
+                };
+            }
+
         }
     }
 
@@ -365,7 +412,7 @@ public class WindowGraph : MonoBehaviour
         }
 
 
-        public List<GameObject> AddGraphVisual(Vector2 graphPosition, float graphPositionWidth, string tooltipText)
+        public IGraphVisualObject CreateGraphVisualObject(Vector2 graphPosition, float graphPositionWidth, string tooltipText)
         {
             List<GameObject> gameObjectList = new List<GameObject>();
             GameObject dotGameObject = CreateDot(graphPosition);
@@ -390,7 +437,7 @@ public class WindowGraph : MonoBehaviour
                 gameObjectList.Add(dotConnectionGameObject);
             }
             lastDotGameObject = dotGameObject;
-            return gameObjectList;
+            return null;
         }
 
         private GameObject CreateDot(Vector2 anchoredPosition)
