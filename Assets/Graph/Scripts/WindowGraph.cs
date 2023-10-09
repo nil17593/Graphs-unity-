@@ -34,6 +34,7 @@ public class WindowGraph : MonoBehaviour
     private int maxVisibleValueAmount;
     private Func<int, string> getAxisLabelX;
     private Func<float, string> getAxisLabelY;
+
     private void Awake()
     {
         Instance = this;
@@ -265,6 +266,7 @@ public class WindowGraph : MonoBehaviour
             xIndex++;
         }
 
+        
         // Set up separators on the y axis
         int separatorCount = 10;
         for (int i = 0; i <= separatorCount; i++)
@@ -398,7 +400,7 @@ public class WindowGraph : MonoBehaviour
 
         private RectTransform graphContainer;
         private Sprite dotSprite;
-        private GameObject lastDotGameObject;
+        private LineGraphVisualObject lastLineGraphVisualObject;
         private Color dotColor;
         private Color dotConnectionColor;
 
@@ -408,7 +410,7 @@ public class WindowGraph : MonoBehaviour
             this.dotSprite = dotSprite;
             this.dotColor = dotColor;
             this.dotConnectionColor = dotConnectionColor;
-            lastDotGameObject = null;
+            lastLineGraphVisualObject = null;
         }
 
 
@@ -417,27 +419,23 @@ public class WindowGraph : MonoBehaviour
             List<GameObject> gameObjectList = new List<GameObject>();
             GameObject dotGameObject = CreateDot(graphPosition);
 
-            // Add Button_UI Component which captures UI Mouse Events
-            Button_UI dotButtonUI = dotGameObject.AddComponent<Button_UI>();
-
-            // Show Tooltip on Mouse Over
-            dotButtonUI.MouseOverOnceFunc += () => {
-                ShowTooltip_Static(tooltipText, graphPosition);
-            };
-
-            // Hide Tooltip on Mouse Out
-            dotButtonUI.MouseOutOnceFunc += () => {
-                HideTooltip_Static();
-            };
-
             gameObjectList.Add(dotGameObject);
-            if (lastDotGameObject != null)
+
+            GameObject dotConnectionGameObject = null;
+
+            if (lastLineGraphVisualObject != null)
             {
-                GameObject dotConnectionGameObject = CreateDotConnection(lastDotGameObject.GetComponent<RectTransform>().anchoredPosition, dotGameObject.GetComponent<RectTransform>().anchoredPosition);
+                dotConnectionGameObject = CreateDotConnection(lastLineGraphVisualObject.GetGraphPosition(),dotGameObject.GetComponent<RectTransform>().anchoredPosition);
                 gameObjectList.Add(dotConnectionGameObject);
             }
-            lastDotGameObject = dotGameObject;
-            return null;
+            
+
+            LineGraphVisualObject lineGraphVisualObject = new LineGraphVisualObject(dotGameObject, dotConnectionGameObject, lastLineGraphVisualObject);
+            lineGraphVisualObject.SetGarphVisualObjectInfo(graphPosition, graphPositionWidth, tooltipText);
+            lastLineGraphVisualObject = lineGraphVisualObject;
+
+            return lineGraphVisualObject;
+            //return null;
         }
 
         private GameObject CreateDot(Vector2 anchoredPosition)
@@ -451,6 +449,8 @@ public class WindowGraph : MonoBehaviour
             rectTransform.sizeDelta = new Vector2(11, 11);
             rectTransform.anchorMin = new Vector2(0, 0);
             rectTransform.anchorMax = new Vector2(0, 0);
+            // Add Button_UI Component which captures UI Mouse Events
+            Button_UI dotButtonUI = gameObject.AddComponent<Button_UI>();
             return gameObject;
         }
 
@@ -469,6 +469,75 @@ public class WindowGraph : MonoBehaviour
             rectTransform.anchoredPosition = dotPositionA + dir * distance * .5f;
             rectTransform.localEulerAngles = new Vector3(0, 0, UtilsClass.GetAngleFromVectorFloat(dir));
             return gameObject;
+        }
+
+        public class LineGraphVisualObject : IGraphVisualObject
+        {
+            public event EventHandler OnChangedGraphVisualObjectInfo;
+            private GameObject dotGameObject;
+            private GameObject dotConnectiongameObject;
+            private LineGraphVisualObject lastVisualObject;
+            public LineGraphVisualObject(GameObject dotGameObject, GameObject dotConnectiongameObject, LineGraphVisualObject lastVisualObject)
+            {
+                this.dotGameObject = dotGameObject;
+                this.dotConnectiongameObject = dotConnectiongameObject;
+                this.lastVisualObject = lastVisualObject;
+
+                if (lastVisualObject != null)
+                {
+                    lastVisualObject.OnChangedGraphVisualObjectInfo += LastVisualObject_OnChangedGraphVisualObjectInfo;
+                }
+            }
+
+            private void LastVisualObject_OnChangedGraphVisualObjectInfo(object sender, EventArgs e)
+            {
+                UpdateDotConnection();
+            }
+
+            public void CleanUp()
+            {
+                Destroy(dotGameObject);
+                Destroy(dotConnectiongameObject);
+            }
+
+            public void SetGarphVisualObjectInfo(Vector2 graphPosition, float graphPositionWidth, string tooltipText)
+            {
+                RectTransform rectTransform = dotGameObject.GetComponent<RectTransform>();
+                rectTransform.anchoredPosition = graphPosition;
+
+                UpdateDotConnection();
+
+                Button_UI dotButtonUI = dotGameObject.GetComponent<Button_UI>();
+                // Show Tooltip on Mouse Over
+                dotButtonUI.MouseOverOnceFunc += () => {
+                    ShowTooltip_Static(tooltipText, graphPosition);
+                };
+
+                // Hide Tooltip on Mouse Out
+                dotButtonUI.MouseOutOnceFunc += () => {
+                    HideTooltip_Static();
+                };
+                if (OnChangedGraphVisualObjectInfo != null) OnChangedGraphVisualObjectInfo(this, EventArgs.Empty);
+            }
+
+            public Vector2 GetGraphPosition()
+            {
+                RectTransform rectTransform = dotGameObject.GetComponent<RectTransform>();
+                return rectTransform.anchoredPosition;
+            }
+
+            private void UpdateDotConnection()
+            {
+                if (dotConnectiongameObject != null)
+                {
+                    RectTransform dotConnectionRectTransform = dotConnectiongameObject.GetComponent<RectTransform>();
+                    Vector2 dir = (lastVisualObject.GetGraphPosition() - GetGraphPosition()).normalized;
+                    float distance = Vector2.Distance(GetGraphPosition(), lastVisualObject.GetGraphPosition());
+                    dotConnectionRectTransform.sizeDelta = new Vector2(distance, 3f);
+                    dotConnectionRectTransform.anchoredPosition = GetGraphPosition() + dir * distance * .5f;
+                    dotConnectionRectTransform.localEulerAngles = new Vector3(0, 0, UtilsClass.GetAngleFromVectorFloat(dir));
+                }
+            }
         }
     }
 }
