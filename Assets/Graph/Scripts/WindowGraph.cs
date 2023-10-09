@@ -8,12 +8,14 @@ using UnityEngine.UI;
 
 public class WindowGraph : MonoBehaviour
 {
+    private static WindowGraph Instance;
     [SerializeField] private Sprite dotSprite;
     [SerializeField] private RectTransform graphContainer;
     [SerializeField] private RectTransform labelTemplateX;
     [SerializeField] private RectTransform labelTemplateY;
     [SerializeField] private RectTransform dashTemplateX;
     [SerializeField] private RectTransform dashTemplateY;
+    [SerializeField] private GameObject toolTip;
     private List<GameObject> gameObjectList;
 
     [SerializeField] private Button BarChartButton;
@@ -33,6 +35,7 @@ public class WindowGraph : MonoBehaviour
     private Func<float, string> getAxisLabelY;
     private void Awake()
     {
+        Instance = this;
         gameObjectList = new List<GameObject>();
 
         List<int> valueList = new List<int>() { 5, 98, 56, 45, 30, 22, 17, 15, 13, 17, 25, 37, 40, 36, 33 };
@@ -62,9 +65,52 @@ public class WindowGraph : MonoBehaviour
         //    }
         //    useBarChart = !useBarChart;
         //}, 0.5f);
+        //ShowToolTip("THIIS", new Vector2(500, 500));
+
+        //FunctionPeriodic.Create(() => { 
+        //    ShowToolTip("THIIS"+UnityEngine.Random.Range(100000,float.MaxValue), new Vector2(500, 500));
+        //},.1f);
+    }
+
+    public static void ShowTooltip_Static(string tooltipText, Vector2 anchoredPosition)
+    {
+        Instance.ShowTooltip(tooltipText, anchoredPosition);
+    }
+
+    private void ShowTooltip(string tooltipText, Vector2 anchoredPosition)
+    {
+        // Show Tooltip GameObject
+        toolTip.SetActive(true);
+
+        toolTip.GetComponent<RectTransform>().anchoredPosition = anchoredPosition;
+
+        TextMeshProUGUI tooltipUIText = toolTip.transform.Find("Text").GetComponent<TextMeshProUGUI>();
+        tooltipUIText.text = tooltipText;
+
+        float textPaddingSize = 4f;
+        Vector2 backgroundSize = new Vector2(
+            tooltipUIText.preferredWidth + textPaddingSize * 2f,
+            tooltipUIText.preferredHeight + textPaddingSize * 2f
+        );
+
+        toolTip.transform.Find("BackGround").GetComponent<RectTransform>().sizeDelta = backgroundSize;
+
+        // UI Visibility Sorting based on Hierarchy, SetAsLastSibling in order to show up on top
+        toolTip.transform.SetAsLastSibling();
+    }
+
+    public static void HideTooltip_Static()
+    {
+        Instance.HideTooltip();
+    }
+
+    private void HideTooltip()
+    {
+        toolTip.SetActive(false);
     }
 
     #region Button Clicks
+
     private void OnBarChartButtonClick()
     {
         SetGraphVisual(barChartVisual);
@@ -79,12 +125,10 @@ public class WindowGraph : MonoBehaviour
     {
         SetGetAxisLabelY((float _f) => "$" + Mathf.RoundToInt(_f));
     }
-
     private void OnEuroButtonClick()
     {
-        SetGetAxisLabelY((float _f) => "€" + Mathf.RoundToInt(_f));
+        SetGetAxisLabelY((float _f) => "e" + Mathf.RoundToInt(_f / 1.18f));
     }
-
     #endregion
 
     private void SetGetAxisLabelX(Func<int, string> getAxisLabelX)
@@ -191,7 +235,8 @@ public class WindowGraph : MonoBehaviour
             float yPosition = ((valueList[i] - yMinimum) / (yMaximum - yMinimum)) * graphHeight;
 
             // Add data point visual
-            gameObjectList.AddRange(graphVisual.AddGraphVisual(new Vector2(xPosition, yPosition), xSize));
+            string tooltipText = getAxisLabelY(valueList[i]);
+            gameObjectList.AddRange(graphVisual.AddGraphVisual(new Vector2(xPosition, yPosition), xSize, tooltipText));
 
             // Duplicate the x label template
             RectTransform labelX = Instantiate(labelTemplateX);
@@ -241,7 +286,7 @@ public class WindowGraph : MonoBehaviour
     private interface IGraphVisual
     {
 
-        List<GameObject> AddGraphVisual(Vector2 graphPosition, float graphPositionWidth);
+        List<GameObject> AddGraphVisual(Vector2 graphPosition, float graphPositionWidth, string tooltipText);
 
     }
 
@@ -263,9 +308,22 @@ public class WindowGraph : MonoBehaviour
             this.barWidthMultiplier = barWidthMultiplier;
         }
 
-        public List<GameObject> AddGraphVisual(Vector2 graphPosition, float graphPositionWidth)
+        public List<GameObject> AddGraphVisual(Vector2 graphPosition, float graphPositionWidth, string tooltipText)
         {
             GameObject barGameObject = CreateBar(graphPosition, graphPositionWidth);
+
+            // Add Button_UI Component which captures UI Mouse Events
+            Button_UI barButtonUI = barGameObject.AddComponent<Button_UI>();
+
+            // Show Tooltip on Mouse Over
+            barButtonUI.MouseOverOnceFunc += () => {
+                ShowTooltip_Static(tooltipText, graphPosition);
+            };
+
+            // Hide Tooltip on Mouse Out
+            barButtonUI.MouseOutOnceFunc += () => {
+                HideTooltip_Static();
+            };
             return new List<GameObject>() { barGameObject };
         }
 
@@ -307,10 +365,24 @@ public class WindowGraph : MonoBehaviour
         }
 
 
-        public List<GameObject> AddGraphVisual(Vector2 graphPosition, float graphPositionWidth)
+        public List<GameObject> AddGraphVisual(Vector2 graphPosition, float graphPositionWidth, string tooltipText)
         {
             List<GameObject> gameObjectList = new List<GameObject>();
             GameObject dotGameObject = CreateDot(graphPosition);
+
+            // Add Button_UI Component which captures UI Mouse Events
+            Button_UI dotButtonUI = dotGameObject.AddComponent<Button_UI>();
+
+            // Show Tooltip on Mouse Over
+            dotButtonUI.MouseOverOnceFunc += () => {
+                ShowTooltip_Static(tooltipText, graphPosition);
+            };
+
+            // Hide Tooltip on Mouse Out
+            dotButtonUI.MouseOutOnceFunc += () => {
+                HideTooltip_Static();
+            };
+
             gameObjectList.Add(dotGameObject);
             if (lastDotGameObject != null)
             {
@@ -340,6 +412,7 @@ public class WindowGraph : MonoBehaviour
             GameObject gameObject = new GameObject("dotConnection", typeof(Image));
             gameObject.transform.SetParent(graphContainer, false);
             gameObject.GetComponent<Image>().color = dotConnectionColor;
+            gameObject.GetComponent<Image>().raycastTarget = false;
             RectTransform rectTransform = gameObject.GetComponent<RectTransform>();
             Vector2 dir = (dotPositionB - dotPositionA).normalized;
             float distance = Vector2.Distance(dotPositionA, dotPositionB);

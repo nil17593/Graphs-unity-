@@ -60,7 +60,7 @@ public class Window_Graph : MonoBehaviour
         };
         transform.Find("EuroButton").GetComponent<Button_UI>().ClickFunc = () =>
         {
-            SetGetAxisLableY((float _f) => "e" + Mathf.RoundToInt(_f/1.18f));
+            SetGetAxisLableY((float _f) => "€" + Mathf.RoundToInt(_f/1.18f));
         };
         //bool useBarChart = true;
         //FunctionPeriodic.Create(() =>
