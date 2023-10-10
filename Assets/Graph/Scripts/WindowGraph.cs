@@ -145,22 +145,22 @@ public class WindowGraph : MonoBehaviour
     }
     #endregion
 
-    private void SetGetAxisLabelX(Func<int, string> getAxisLabelX)
+    public void SetGetAxisLabelX(Func<int, string> getAxisLabelX)
     {
         ShowGraph(this.valueList, this.graphVisual, this.maxVisibleValueAmount, getAxisLabelX, this.getAxisLabelY);
     }
 
-    private void SetGetAxisLabelY(Func<float, string> getAxisLabelY)
+    public void SetGetAxisLabelY(Func<float, string> getAxisLabelY)
     {
         ShowGraph(this.valueList, this.graphVisual, this.maxVisibleValueAmount, this.getAxisLabelX, getAxisLabelY);
     }
 
-    private void IncreaseVisibleAmount()
+    public void IncreaseVisibleAmount()
     {
         ShowGraph(this.valueList, this.graphVisual, this.maxVisibleValueAmount + 1, this.getAxisLabelX, this.getAxisLabelY);
     }
 
-    private void DecreaseVisibleAmount()
+    public void DecreaseVisibleAmount()
     {
         ShowGraph(this.valueList, this.graphVisual, this.maxVisibleValueAmount - 1, this.getAxisLabelX, this.getAxisLabelY);
     }
@@ -170,7 +170,7 @@ public class WindowGraph : MonoBehaviour
         ShowGraph(this.valueList, graphVisual, this.maxVisibleValueAmount, this.getAxisLabelX, this.getAxisLabelY);
     }
 
-    private void ShowGraph(List<int> valueList, IGraphVisual graphVisual, int maxVisibleValueAmount = -1, Func<int, string> getAxisLabelX = null, Func<float, string> getAxisLabelY = null)
+    public void ShowGraph(List<int> valueList, IGraphVisual graphVisual, int maxVisibleValueAmount = -1, Func<int, string> getAxisLabelX = null, Func<float, string> getAxisLabelY = null)
     {
         this.valueList = valueList;
         this.graphVisual = graphVisual;
@@ -276,7 +276,10 @@ public class WindowGraph : MonoBehaviour
             gameObjectList.Add(dashY.gameObject);
         }
     }
-
+    public void UpdateLastIndexValue(int value)
+    {
+        UpdateValue(valueList.Count - 1, value);
+    }
     private void UpdateValue(int index,int value)
     {
         float yMinimumBefore, yMaximumBefore;
@@ -364,15 +367,15 @@ public class WindowGraph : MonoBehaviour
     /*
      * Interface definition for showing visual for a data point
      * */
-    private interface IGraphVisual
+    public interface IGraphVisual
     {
 
         IGraphVisualObject CreateGraphVisualObject(Vector2 graphPosition, float graphPositionWidth, string tooltipText);
-
+        void CleanUp();
     }
 
     //represents single visual graph object in graph
-    private interface IGraphVisualObject
+    public interface IGraphVisualObject
     {
         void SetGarphVisualObjectInfo(Vector2 graphPosition, float graphPositionWidth, string tooltipText);
         void CleanUp();
@@ -396,15 +399,17 @@ public class WindowGraph : MonoBehaviour
             this.barWidthMultiplier = barWidthMultiplier;
         }
 
+        public void CleanUp()
+        {
+            throw new NotImplementedException();
+        }
+
         public IGraphVisualObject CreateGraphVisualObject(Vector2 graphPosition, float graphPositionWidth, string tooltipText)
         {
             GameObject barGameObject = CreateBar(graphPosition, graphPositionWidth);
 
             BarChartVisualObject barChartVisualObject = new BarChartVisualObject(barGameObject, barWidthMultiplier);
             barChartVisualObject.SetGarphVisualObjectInfo(graphPosition, graphPositionWidth, tooltipText);
-           
-
-           
 
             return barChartVisualObject;
         }
@@ -483,6 +488,10 @@ public class WindowGraph : MonoBehaviour
             lastLineGraphVisualObject = null;
         }
 
+        public void CleanUp()
+        {
+            throw new NotImplementedException();
+        }
 
         public IGraphVisualObject CreateGraphVisualObject(Vector2 graphPosition, float graphPositionWidth, string tooltipText)
         {
