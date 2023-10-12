@@ -6,9 +6,11 @@ using TMPro;
 using CodeMonkey.Utils;
 using UnityEngine.UI;
 
+
 public class WindowGraph : MonoBehaviour
 {
     private static WindowGraph Instance;
+    [Header("Serialized Properties")]
     [SerializeField] private Sprite dotSprite;
     [SerializeField] private RectTransform graphContainer;
     [SerializeField] private RectTransform labelTemplateX;
@@ -16,16 +18,17 @@ public class WindowGraph : MonoBehaviour
     [SerializeField] private RectTransform dashTemplateX;
     [SerializeField] private RectTransform dashTemplateY;
     [SerializeField] private GameObject toolTip;
-    private List<GameObject> gameObjectList;
-    private List<IGraphVisualObject> graphVisualObjectList;
-    private List<RectTransform> yLabelList;
-
     [SerializeField] private Button BarChartButton;
     [SerializeField] private Button LineGraphButton;
     [SerializeField] private Button DecreaseVisibleAmountButton;
     [SerializeField] private Button IncreaseVisibleAmountButton;
     [SerializeField] private Button DollerButton;
     [SerializeField] private Button EuroButton;
+
+    private List<GameObject> gameObjectList;
+    private List<IGraphVisualObject> graphVisualObjectList;
+    private List<RectTransform> yLabelList;
+
     private IGraphVisual barChartVisual;
     private IGraphVisual lineGraphVisual;
 
@@ -77,13 +80,6 @@ public class WindowGraph : MonoBehaviour
         //FunctionPeriodic.Create(() => { 
         //    ShowToolTip("THIIS"+UnityEngine.Random.Range(100000,float.MaxValue), new Vector2(500, 500));
         //},.1f);
-
-        int value = 0;
-        FunctionPeriodic.Create(() =>
-        {
-            UpdateValue(0, value);
-            value++;
-        },0.1f);
     }
 
     public static void ShowTooltip_Static(string tooltipText, Vector2 anchoredPosition)

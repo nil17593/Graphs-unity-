@@ -308,6 +308,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Item 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1766999539027494, guid: bdf2c8950c6d708478d9c314bd8ea791, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 224332873395531712, guid: bdf2c8950c6d708478d9c314bd8ea791, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -338,11 +342,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 224332873395531712, guid: bdf2c8950c6d708478d9c314bd8ea791, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 600
+      value: 900
       objectReference: {fileID: 0}
     - target: {fileID: 224332873395531712, guid: bdf2c8950c6d708478d9c314bd8ea791, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 600
+      value: 1200
       objectReference: {fileID: 0}
     - target: {fileID: 224332873395531712, guid: bdf2c8950c6d708478d9c314bd8ea791, type: 3}
       propertyPath: m_LocalPosition.x
@@ -416,13 +420,39 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 08ec8f7ff78857c47b651ebe1792ebd0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  feedItemPrefab: {fileID: 1766999539027494, guid: bdf2c8950c6d708478d9c314bd8ea791, type: 3}
+  feedItemPrefab: {fileID: -8859906201701339792, guid: bdf2c8950c6d708478d9c314bd8ea791, type: 3}
   feedContainer: {fileID: 754408762}
   feedItems:
-  - {fileID: 11400000, guid: 0613e35a8595380449cfbcdb244cbff8, type: 2}
-  - {fileID: 11400000, guid: af2e0f50fda139f479d4f83f902c74e6, type: 2}
-  - {fileID: 11400000, guid: e412767ff55625041880ba4f8229165d, type: 2}
-  - {fileID: 11400000, guid: d8825ac40a7c79e4db2278b45ab2c506, type: 2}
+  - {fileID: 21300000, guid: 2ee06586d3211fb44843b5aaabb18964, type: 3}
+  - {fileID: 21300000, guid: 18313d302f1687d44b263fa898fe2b8c, type: 3}
+  - {fileID: 21300000, guid: d10ad27ce424b4942a75acc4cc35873b, type: 3}
+  - {fileID: 21300000, guid: 9ea12490f8a90694a96119889a429dbe, type: 3}
+--- !u!114 &754408766
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 754408761}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 59f8146938fff824cb5fd77236b75775, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Padding:
+    m_Left: 0
+    m_Right: 0
+    m_Top: 0
+    m_Bottom: 0
+  m_ChildAlignment: 0
+  m_Spacing: 0
+  m_ChildForceExpandWidth: 1
+  m_ChildForceExpandHeight: 1
+  m_ChildControlWidth: 0
+  m_ChildControlHeight: 0
+  m_ChildScaleWidth: 0
+  m_ChildScaleHeight: 0
+  m_ReverseArrangement: 0
 --- !u!1 &1291407976
 GameObject:
   m_ObjectHideFlags: 0
@@ -539,12 +569,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_UiScaleMode: 0
+  m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
-  m_ReferenceResolution: {x: 800, y: 600}
+  m_ReferenceResolution: {x: 1920, y: 1080}
   m_ScreenMatchMode: 0
-  m_MatchWidthOrHeight: 0
+  m_MatchWidthOrHeight: 0.5
   m_PhysicalUnit: 3
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
@@ -647,6 +677,22 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1986040950315682, guid: 30cbc0fae6a2fc84ab84f49a22e06c99, type: 3}
       propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 114483401197229046, guid: 30cbc0fae6a2fc84ab84f49a22e06c99, type: 3}
+      propertyPath: m_Color.a
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 114483401197229046, guid: 30cbc0fae6a2fc84ab84f49a22e06c99, type: 3}
+      propertyPath: m_Color.b
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 114483401197229046, guid: 30cbc0fae6a2fc84ab84f49a22e06c99, type: 3}
+      propertyPath: m_Color.g
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 114483401197229046, guid: 30cbc0fae6a2fc84ab84f49a22e06c99, type: 3}
+      propertyPath: m_Color.r
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 114500005028945546, guid: 30cbc0fae6a2fc84ab84f49a22e06c99, type: 3}
