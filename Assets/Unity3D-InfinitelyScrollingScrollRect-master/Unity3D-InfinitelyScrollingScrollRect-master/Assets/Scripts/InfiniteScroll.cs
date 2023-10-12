@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using Garuna.ScrollingFeed;
 
 public class InfiniteScroll : MonoBehaviour, IBeginDragHandler, IDragHandler, IScrollHandler
 {
@@ -37,7 +38,7 @@ public class InfiniteScroll : MonoBehaviour, IBeginDragHandler, IDragHandler, IS
 
     private void Start()
     {
-        scrollRect = GetComponent<ScrollRect>();
+        scrollRect = GetComponent<ScrollRect >();
         scrollRect.vertical = scrollContent.Vertical;
         scrollRect.horizontal = scrollContent.Horizontal;
         scrollRect.movementType = ScrollRect.MovementType.Unrestricted;
@@ -109,7 +110,7 @@ public class InfiniteScroll : MonoBehaviour, IBeginDragHandler, IDragHandler, IS
     /// </summary>
     private void HandleVerticalScroll()
     {
-        int currItemIndex = positiveDrag ? scrollRect.content.childCount - 1 : 0;
+        int currItemIndex = positiveDrag ? scrollRect.content.childCount - 2 : 0;
         var currItem = scrollRect.content.GetChild(currItemIndex);
 
         if (!ReachedThreshold(currItem))
@@ -123,6 +124,8 @@ public class InfiniteScroll : MonoBehaviour, IBeginDragHandler, IDragHandler, IS
 
         if (positiveDrag)
         {
+            FeedManager.Instance.LoadMoreImages();
+
             newPos.y = endItem.position.y - scrollContent.ChildHeight * 1.5f + scrollContent.ItemSpacing;
         }
         else
@@ -130,8 +133,9 @@ public class InfiniteScroll : MonoBehaviour, IBeginDragHandler, IDragHandler, IS
             newPos.y = endItem.position.y + scrollContent.ChildHeight * 1.5f - scrollContent.ItemSpacing;
         }
 
-        currItem.position = newPos;
-        currItem.SetSiblingIndex(endItemIndex);
+
+        //currItem.position = newPos;
+        //currItem.SetSiblingIndex(endItemIndex);
     }
 
     /// <summary>
@@ -158,6 +162,7 @@ public class InfiniteScroll : MonoBehaviour, IBeginDragHandler, IDragHandler, IS
         {
             newPos.x = endItem.position.x + scrollContent.ChildWidth * 1.5f - scrollContent.ItemSpacing;
         }
+
 
         currItem.position = newPos;
         currItem.SetSiblingIndex(endItemIndex);
